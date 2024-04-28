@@ -5,7 +5,7 @@ from constants import PERSIST_DIRECTORY, SOURCE_DIRECTORY, TMP_DIRECTORY
 from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_openai import OpenAIEmbeddings
-from langchain_cohere import CohereEmbeddings
+# from langchain_cohere import CohereEmbeddings
 from langchain_community.vectorstores import Chroma
 from dotenv import load_dotenv
 from extractor import Item7Extractor
@@ -53,7 +53,7 @@ def create_DB(symbol):
             text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
             docs = text_splitter.split_documents(pages)
             all_docs.extend(docs)
-    embeddings = CohereEmbeddings()
+    embeddings = OpenAIEmbeddings()
     db = Chroma.from_documents(all_docs, embeddings, persist_directory=f"{PERSIST_DIRECTORY}/{symbol}/item_7")
     return ""
 

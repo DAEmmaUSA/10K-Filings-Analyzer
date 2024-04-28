@@ -3,7 +3,8 @@ import os
 from langchain.chains import RetrievalQA
 from pydantic import BaseModel, Field
 from langchain_openai import ChatOpenAI
-from langchain_cohere import CohereEmbeddings
+# from langchain_cohere import CohereEmbeddings
+from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import Chroma
 from langchain.agents import Tool
 from langchain.prompts import PromptTemplate
@@ -49,7 +50,7 @@ def create_tools(symbol):
     tools=[]
     
     # defining the embeddings
-    embeddings = CohereEmbeddings()
+    embeddings = OpenAIEmbeddings()
     
     # iterating through each file for retrieval
     db=Chroma(persist_directory=f"{PERSIST_DIRECTORY}/{symbol}/item_7", embedding_function=embeddings)
