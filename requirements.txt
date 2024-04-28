@@ -66,7 +66,6 @@ langchain-core==0.1.46
 langchain-openai==0.1.4
 langchain-text-splitters==0.0.1
 langchain-visualizer==0.0.33
-langsmith==0.1.51
 Levenshtein==0.25.1
 markdown-it-py==3.0.0
 MarkupSafe==2.1.5
