@@ -62,8 +62,7 @@ kubernetes==29.0.0
 langchain==0.0.354
 langchain-community==0.0.20
 langchain-core==0.1.22
-langchain-openai==0.0.5
-langchain-text-splitters==0.0.1
+langchain-openai==0.0.6
 langchain-visualizer==0.0.33
 langsmith==0.0.87
 Levenshtein==0.25.1
@@ -157,7 +156,7 @@ sympy==1.12
 tenacity==8.2.3
 thefuzz==0.22.1
 threadpoolctl==3.4.0
-tiktoken==0.5.2
+tiktoken==0.6.0
 tokenizers==0.19.1
 toml==0.10.2
 toolz==0.12.1
