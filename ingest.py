@@ -8,7 +8,7 @@ from langchain_openai import OpenAIEmbeddings
 # from langchain_cohere import CohereEmbeddings
 from langchain_community.vectorstores import Chroma
 from dotenv import load_dotenv
-from extractor import Item7Extractor
+from extractor import ItemExtractor
 
 load_dotenv()
 print(PERSIST_DIRECTORY, SOURCE_DIRECTORY, TMP_DIRECTORY)
@@ -17,11 +17,14 @@ def get_recent_folders(dir_path, num_years=5):
     # List all subdirectories in the given directory
     all_entries = os.listdir(dir_path)
 
+    # Filter out only the folders after the year 2000
+    # "0000320193-98-000105" -> not a valid year
+    # "0000320193-21-000105" -> valid year
     all_folders = [entry for entry in all_entries if os.path.isdir(os.path.join(dir_path, entry)) and int(entry.split('-')[1]) < 25]
 
     # Extract years and sort them, assuming the folder format includes the year as shown
     # Folder format example: "0000320193-21-000105"
-    # Extracts the '21' part as the year, assumes all years are from 2000 onwards
+    # Extracts the '21' part as the year
     sorted_folders = sorted(all_folders, key=lambda x: int('20' + x.split('-')[1]), reverse=True)
 
     # Get the most recent 'num_years' folders
@@ -41,11 +44,17 @@ def create_DB(symbol):
         if not os.path.isdir(year_folder_path):
             raise(f"Directory {year_folder_path} does not exist")
         doc_path = os.path.join(year_folder_path, "primary-document.html")
-        extractor = Item7Extractor(doc_path)
-        item_7_text = extractor.extract_item_7_content()
-        file_name = f"{symbol}_{year_folder.split('-')[1]}_item_7.txt"
+        extractor = ItemExtractor(doc_path)
+
+        # Extract the content for Items 1, 1a, 7, 7a and 8
+        item_1_1a_text = extractor.extract_item_1_1a_content()
+        item_7_7a_text = extractor.extract_item_7_7a_content()
+        item_8_text = extractor.extract_item_8_content()
+        all_item_text = item_1_1a_text + '\n' + item_7_7a_text + '\n' + item_8_text
+        
+        file_name = f"{symbol}_{year_folder.split('-')[1]}.txt"
         ext_path = os.path.join(TMP_DIRECTORY, file_name)
-        extractor.save_content_to_file(item_7_text, ext_path)
+        extractor.save_content_to_file(all_item_text, ext_path)
         if os.path.exists(ext_path):  # Checking if the file exists
             print("File path:", ext_path)
             loader = TextLoader(ext_path)
