@@ -4,9 +4,9 @@ from load_agent import load_agents
 from tools import create_tools
 from ingest import create_DB
 from downloader import download
-# __import__('pysqlite3')
-# import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+__import__('pysqlite3')
+import sys
+sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Initialize environment and tools
 from dotenv import load_dotenv
@@ -20,22 +20,12 @@ def load_tools(symbol):
         agents[symbol] = load_agents(tools)
     return agents[symbol]
 
-# Function to handle asynchronous agent invocation
 def run_agent_query(agent, query):
     return agent.invoke(query)
 
-# def run_async(coroutine):
-#     # Create a new event loop
-#     loop = asyncio.new_event_loop()
-#     asyncio.set_event_loop(loop)
-#     result = loop.run_until_complete(coroutine)
-#     loop.close()
-#     return result
-
 def main():
-    st.title("Financial Document Analyzer")
+    st.title("10K Fillings Analyzer")
 
-    # User input for the company symbol
     symbol = st.text_input("Enter the company symbol (e.g., AAPL):")
 
     queries = {

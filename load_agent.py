@@ -12,7 +12,7 @@ def load_agents(tools):
     # Defining the llm to be used 
     llm = ChatOpenAI(
         temperature=0,
-        model="gpt-3.5-turbo-0613",
+        model="gpt-3.5-turbo-0125",
     )
     
     '''
@@ -25,7 +25,7 @@ def load_agents(tools):
         agent=AgentType.OPENAI_FUNCTIONS,
         tools=tools,
         llm=llm,
-        verbose=True,
+        verbose=False,
     )
     
     return agent

@@ -24,8 +24,6 @@ Question: {question}
 Helpful Answer:
 """
 
-
-
 '''
 We use the user defined prompt template and pass it to the chain type kwargs
 '''
@@ -46,24 +44,24 @@ A function which does retreval and create tools for each retriever
 using Langchain
 '''
 def create_tools(symbol):
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0613")
+    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0125")
     # creating a tools list to be appended 
-    tools=[]
+    tools = []
     
     # defining the embeddings
     embeddings = OpenAIEmbeddings()
     
     # iterating through each file for retrieval
-    db=Chroma(persist_directory=f"{PERSIST_DIRECTORY}/{symbol}/item_7", embedding_function=embeddings)
-    retrievers=db.as_retriever()
+    db = Chroma(persist_directory=f"{PERSIST_DIRECTORY}/{symbol}/item_7", embedding_function=embeddings)
+    retrievers = db.as_retriever()
     
     # appending tools for each retrieval
     tools.append(
             Tool(
-                args_schema=DocumentInput,
-                name="Financial_Analysis",
-                description=f"useful when you want to answer questions about a document",
-                func=RetrievalQA.from_chain_type(llm=llm, retriever=retrievers, chain_type_kwargs=chain_type_kwargs),
+                args_schema = DocumentInput,
+                name = "Financial_Analysis",
+                description = f"useful when you want to answer questions about a document",
+                func = RetrievalQA.from_chain_type(llm=llm, retriever=retrievers, chain_type_kwargs=chain_type_kwargs),
             )
         )
 
