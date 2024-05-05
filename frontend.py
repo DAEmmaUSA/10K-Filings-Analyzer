@@ -24,7 +24,7 @@ def run_agent_query(agent, query):
     return agent.invoke(query)
 
 def main():
-    st.title("10K Fillings Analyzer")
+    st.title("10K Filings Analyzer")
 
     symbol = st.text_input("Enter the company symbol (e.g., AAPL):")
 
