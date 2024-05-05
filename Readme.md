@@ -46,7 +46,7 @@ The financial insight focuses on three aspects:
 
 ## App Deployed on the Cloud
 
-- ```https://financial-report-analyser.streamlit.app/```
+- ```https://10k-filings-analyzer.streamlit.app/```
 
 - Sample output of AAPL
 
