@@ -63,9 +63,9 @@ def create_DB(symbol):
             docs = text_splitter.split_documents(pages)
             all_docs.extend(docs)
     from langchain_openai import OpenAIEmbeddings
-import os
+    import os
 
-embeddings = OpenAIEmbeddings(
+    embeddings = OpenAIEmbeddings(
     model="text-embedding-3-small",
     batch_size=16,
     api_key=os.getenv("OPENAI_API_KEY")  # ensures clean handling in serverless environments
