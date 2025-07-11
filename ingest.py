@@ -62,8 +62,14 @@ def create_DB(symbol):
             text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
             docs = text_splitter.split_documents(pages)
             all_docs.extend(docs)
-    embeddings = OpenAIEmbeddings(batch_size=16)
+    from langchain_openai import OpenAIEmbeddings
+import os
 
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-small",
+    batch_size=16,
+    api_key=os.getenv("OPENAI_API_KEY")  # ensures clean handling in serverless environments
+)
     # Create a vector store from the documents
     db = FAISS.from_documents(all_docs, embeddings)
     logging.info(f"Vector database created for {symbol}")
