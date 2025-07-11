@@ -30,6 +30,7 @@ def get_recent_folders(dir_path, num_years=5):
     return recent_folders
 
 def create_DB(symbol):
+    print("SOURCE_DIRECTORY:", SOURCE_DIRECTORY)
     logging.info(f"Loading documents from {SOURCE_DIRECTORY}/{symbol}/10-K/")
     # Path to the symbol's 10-K directory
     dir_path = os.path.join(SOURCE_DIRECTORY, symbol, "10-K")
