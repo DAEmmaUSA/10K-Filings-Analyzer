@@ -8,3 +8,7 @@ tiktoken
 pandas
 yfinance
 python-dotenv
+langchain-openai
+langchain
+langchain-core
+langchain-community
