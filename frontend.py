@@ -4,9 +4,9 @@ from load_agent import load_agents
 from tools import create_tools
 from ingest import create_DB
 from downloader import download
-__import__('pysqlite3')
-import sys
-sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+# __import__('pysqlite3')
+# import sys
+# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
 
 # Initialize environment and tools
 from dotenv import load_dotenv
