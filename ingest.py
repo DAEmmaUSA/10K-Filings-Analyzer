@@ -6,7 +6,7 @@ from langchain.text_splitter import CharacterTextSplitter
 from langchain_community.document_loaders import TextLoader
 from langchain_openai import OpenAIEmbeddings
 # from langchain_cohere import CohereEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from dotenv import load_dotenv
 from extractor import ItemExtractor
 
@@ -65,7 +65,7 @@ def create_DB(symbol):
     embeddings = OpenAIEmbeddings()
 
     # Create a vector store from the documents
-    db = Chroma.from_documents(all_docs, embeddings)
+    db = FAISS.from_documents(all_docs, embeddings)
     logging.info(f"Vector database created for {symbol}")
     return ""
 
