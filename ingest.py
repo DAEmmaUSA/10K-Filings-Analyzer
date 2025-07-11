@@ -65,7 +65,7 @@ def create_DB(symbol):
     embeddings = OpenAIEmbeddings()
 
     # Create a vector store from the documents
-    db = Chroma.from_documents(all_docs, embeddings, persist_directory=f"{PERSIST_DIRECTORY}/{symbol}/item_7")
+    db = Chroma.from_documents(all_docs, embeddings)
     logging.info(f"Vector database created for {symbol}")
     return ""
 
