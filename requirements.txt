@@ -13,3 +13,4 @@ langchain
 langchain-core
 langchain-community
 sec-edgar-downloader
+faiss-cpu
