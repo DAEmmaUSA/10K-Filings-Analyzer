@@ -62,7 +62,7 @@ def create_DB(symbol):
             text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
             docs = text_splitter.split_documents(pages)
             all_docs.extend(docs)
-    embeddings = OpenAIEmbeddings()
+    embeddings = OpenAIEmbeddings(batch_size=16)
 
     # Create a vector store from the documents
     db = FAISS.from_documents(all_docs, embeddings)
