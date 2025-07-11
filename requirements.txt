@@ -12,3 +12,4 @@ langchain-openai
 langchain
 langchain-core
 langchain-community
+sec-edgar-downloader
