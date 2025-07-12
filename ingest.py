@@ -64,7 +64,7 @@ def create_DB(symbol):
             docs = text_splitter.split_documents(pages)
             all_docs.extend(docs)
     from langchain_openai import OpenAIEmbeddings
-    import os
+   # import os
 
     embeddings = OpenAIEmbeddings(
     model="text-embedding-3-small",
