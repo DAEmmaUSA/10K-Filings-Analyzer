@@ -82,7 +82,7 @@ def create_DB(symbol):
     all_docs = [Document(page_content=doc) for doc in all_docs]
 
 # Create FAISS vectorstore
-db = FAISS.from_documents(all_docs, embeddings)
+    db = FAISS.from_documents(all_docs, embeddings)
 
     logging.info(f"Vector database created for {symbol}")
     return ""
