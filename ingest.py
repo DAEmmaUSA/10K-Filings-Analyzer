@@ -72,7 +72,18 @@ def create_DB(symbol):
     api_key=os.getenv("OPENAI_API_KEY")  # ensures clean handling in serverless environments
 )
     # Create a vector store from the documents
-    db = FAISS.from_documents(all_docs, embeddings)
+    # Debug print
+    print(f"Number of documents: {len(all_docs)}")
+    print(f"First doc type: {type(all_docs[0])}")
+
+    # Convert to Document objects if needed
+    from langchain_core.documents import Document
+    if isinstance(all_docs[0], str):
+    all_docs = [Document(page_content=doc) for doc in all_docs]
+
+# Create FAISS vectorstore
+db = FAISS.from_documents(all_docs, embeddings)
+
     logging.info(f"Vector database created for {symbol}")
     return ""
 
