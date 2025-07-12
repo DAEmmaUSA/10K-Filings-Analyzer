@@ -1,55 +1,109 @@
-from constants import SOURCE_DIRECTORY, PERSIST_DIRECTORY
 import os
-from langchain.chains import RetrievalQA
-from pydantic import BaseModel, Field
-from langchain_openai import ChatOpenAI
+import streamlit as st
+from constants import PERSIST_DIRECTORY
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import FAISS  # ✅ use FAISS instead of Chroma
-from langchain.agents import Tool
-from langchain.prompts import PromptTemplate
+from langchain_community.vectorstores import FAISS
+from dotenv import load_dotenv
 
-# Prompt template
-prompt_template = """
-Hello, your name is Bob. You are a financial analyst with expertise in reviewing and interpreting SEC 10-K annual filings.
-You have the following sections available for analysis: Item 1 (Business Overview), Item 1A (Risk Factors), Item 7 (Management’s Discussion and Analysis of Financial Condition and Results of Operations),
-Item 7A (Quantitative and Qualitative Disclosures About Market Risk), and Item 8 (Financial Statements and Supplementary Data).
-Please provide financial insight based on the context provided below:
+load_dotenv()
 
-{context}
-
-Question: {question}
-Helpful Answer:
-"""
-
-PROMPT = PromptTemplate(
-    template=prompt_template, input_variables=["context", "question"]
-)
-chain_type_kwargs = {"prompt": PROMPT}
-
-class DocumentInput(BaseModel):
-    question: str = Field()
+def check_vector_db_exists(symbol):
+    """Check if vector database exists for the given symbol"""
+    folder_path = f"{PERSIST_DIRECTORY}/{symbol}/item_7"
+    
+    # Check if directory exists
+    if not os.path.exists(folder_path):
+        return False, f"Directory {folder_path} does not exist"
+    
+    # Check if required FAISS files exist
+    required_files = ["index.faiss", "index.pkl"]
+    missing_files = []
+    
+    for file in required_files:
+        file_path = os.path.join(folder_path, file)
+        if not os.path.exists(file_path):
+            missing_files.append(file)
+    
+    if missing_files:
+        return False, f"Missing FAISS files: {', '.join(missing_files)}"
+    
+    return True, "Vector database exists"
 
 def create_tools(symbol):
-    llm = ChatOpenAI(temperature=0, model="gpt-3.5-turbo-0125")
-    tools = []
+    """Create tools for the given symbol, handling missing vector database gracefully"""
     
-    embeddings = OpenAIEmbeddings()
+    # Check if vector database exists first
+    db_exists, message = check_vector_db_exists(symbol)
     
-    # ✅ Load FAISS vector store instead of Chroma
-    db = FAISS.load_local(
-        folder_path=f"{PERSIST_DIRECTORY}/{symbol}/item_7",
-        embeddings=embeddings
-    )
+    if not db_exists:
+        st.error(f"❌ Vector database not found for {symbol}")
+        st.error(f"Details: {message}")
+        st.info("💡 **How to fix this:**")
+        st.info("1. Run the database creation script:")
+        st.code("python create_db.py", language="bash")
+        st.info(f"2. Enter '{symbol}' when prompted")
+        st.info("3. Wait for processing to complete")
+        st.info("4. Refresh this page")
+        
+        # Return None to indicate failure
+        return None
     
-    retriever = db.as_retriever()
-    
-    tools.append(
-        Tool(
-            args_schema=DocumentInput,
-            name="Financial_Analysis",
-            description="Useful when you want to answer questions about a document",
-            func=RetrievalQA.from_chain_type(llm=llm, retriever=retriever, chain_type_kwargs=chain_type_kwargs),
+    try:
+        embeddings = OpenAIEmbeddings(
+            model="text-embedding-3-small",
+            batch_size=16,
+            api_key=os.getenv("OPENAI_API_KEY")
         )
-    )
+        
+        folder_path = f"{PERSIST_DIRECTORY}/{symbol}/item_7"
+        
+        # Attempt to load the FAISS database
+        db = FAISS.load_local(
+            folder_path=folder_path,
+            embeddings=embeddings,
+            allow_dangerous_deserialization=True
+        )
+        
+        st.success(f"✅ Successfully loaded vector database for {symbol}")
+        
+        # Return the database or your actual tools
+        return db
+        
+    except Exception as e:
+        st.error(f"❌ Error loading vector database for {symbol}")
+        st.error(f"Error details: {str(e)}")
+        st.info("💡 **Troubleshooting:**")
+        st.info("1. The vector database may be corrupted")
+        st.info("2. Try recreating it by running:")
+        st.code("python create_db.py", language="bash")
+        st.info(f"3. Enter '{symbol}' when prompted")
+        return None
 
-    return tools
+def create_tools_without_vector_db(symbol):
+    """Create basic tools that don't require vector database"""
+    st.info(f"🔧 Creating basic tools for {symbol} without vector search")
+    
+    # Return basic tools that don't need vector database
+    # This is a fallback for when vector DB is not available
+    basic_tools = {
+        "symbol": symbol,
+        "has_vector_db": False,
+        "message": "Basic tools without vector search"
+    }
+    
+    return basic_tools
+
+def list_available_symbols():
+    """List all symbols that have vector databases"""
+    if not os.path.exists(PERSIST_DIRECTORY):
+        return []
+    
+    symbols = []
+    for item in os.listdir(PERSIST_DIRECTORY):
+        symbol_path = os.path.join(PERSIST_DIRECTORY, item)
+        if os.path.isdir(symbol_path):
+            db_exists, _ = check_vector_db_exists(item)
+            if db_exists:
+                symbols.append(item)
+    
+    return symbols
