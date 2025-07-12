@@ -83,7 +83,7 @@ def create_DB(symbol):
 
 # Create FAISS vectorstore
         db = FAISS.from_documents(all_docs, embeddings)
-
+        db.save_local(f"{PERSIST_DIRECTORY}/{symbol}/item_7")
         logging.info(f"Vector database created for {symbol}")
         return ""
 
