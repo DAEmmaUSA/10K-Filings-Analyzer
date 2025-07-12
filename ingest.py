@@ -79,7 +79,7 @@ def create_DB(symbol):
     # Convert to Document objects if needed
     from langchain_core.documents import Document
     if isinstance(all_docs[0], str):
-    all_docs = [Document(page_content=doc) for doc in all_docs]
+        all_docs = [Document(page_content=doc) for doc in all_docs]
 
 # Create FAISS vectorstore
         db = FAISS.from_documents(all_docs, embeddings)
