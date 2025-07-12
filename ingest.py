@@ -84,8 +84,8 @@ def create_DB(symbol):
 # Create FAISS vectorstore
     db = FAISS.from_documents(all_docs, embeddings)
 
-    logging.info(f"Vector database created for {symbol}")
-    return ""
+        logging.info(f"Vector database created for {symbol}")
+        return ""
 
 
 def main(symbol):
