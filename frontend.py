@@ -1,94 +1,141 @@
 import streamlit as st
-import asyncio
-from load_agent import load_agents
-from tools import create_tools
-from ingest import create_DB
-from downloader import download
-# __import__('pysqlite3')
-# import sys
-# sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
-
-# Initialize environment and tools
-from dotenv import load_dotenv
-load_dotenv()
-
-agents = {}
+from tools import create_tools, create_tools_without_vector_db, list_available_symbols
 
 def load_tools(symbol):
-    if symbol not in agents:  # Load agent if not already loaded
-        tools = create_tools(symbol)
-        agents[symbol] = load_agents(tools)
-    return agents[symbol]
+    """Load tools for the given symbol with comprehensive error handling"""
+    
+    if not symbol:
+        st.warning("Please enter a stock symbol")
+        return None
+    
+    with st.spinner(f"Loading tools for {symbol}..."):
+        try:
+            tools = create_tools(symbol)
+            return tools
+            
+        except Exception as e:
+            st.error(f"❌ Unexpected error loading tools for {symbol}")
+            st.error(f"Error: {str(e)}")
+            
+            # Show debug info
+            with st.expander("🔍 Debug Information"):
+                st.write(f"Symbol: {symbol}")
+                st.write(f"Error type: {type(e).__name__}")
+                st.write(f"Error message: {str(e)}")
+            
+            return None
 
-def run_agent_query(agent, query):
-    return agent.invoke(query)
+def show_database_creation_instructions(symbol):
+    """Show instructions for creating the database"""
+    st.markdown("### 🛠️ Database Creation Required")
+    st.markdown(f"The vector database for **{symbol}** needs to be created first.")
+    
+    st.markdown("#### Step-by-step instructions:")
+    st.markdown("1. **Open a terminal/command prompt**")
+    st.markdown("2. **Navigate to your project directory**")
+    st.markdown("3. **Run the database creation script:**")
+    st.code("python create_db.py", language="bash")
+    st.markdown("4. **Enter the symbol when prompted:**")
+    st.code(symbol, language="text")
+    st.markdown("5. **Wait for processing to complete** (this may take a few minutes)")
+    st.markdown("6. **Refresh this page**")
+    
+    st.markdown("#### What the script does:")
+    st.markdown("- Downloads and processes 10-K filings")
+    st.markdown("- Extracts relevant sections (Items 1, 1A, 7, 7A, 8)")
+    st.markdown("- Creates embeddings using OpenAI")
+    st.markdown("- Saves the vector database for fast retrieval")
 
 def main():
-    st.title("10K Filings Analyzer")
-
-    symbol = st.text_input("Enter the company symbol (e.g., AAPL):")
-
-    queries = {
-    "Overview": f"""
-Based on the comprehensive review of the latest 10-K filing of {symbol}, identify and analyze three positive and three negative aspects regarding the company's prospects. Organize your analysis in the following format:
-
-1. **Positive Insights**:
-   - **Strengths and Opportunities**: Detail three major strengths or opportunities that {symbol} is poised to capitalize on.
-   - **Potential Positive Outcomes**: Discuss the possible beneficial outcomes if these strengths and opportunities are effectively leveraged.
-
-2. **Negative Insights**:
-   - **Challenges and Threats**: Enumerate three significant challenges or threats facing {symbol}.
-   - **Potential Negative Consequences**: Explore the potential adverse impacts these challenges could have on {symbol}'s future performance.
-    """
-    ,
-    "Business and Risk": f"""
-Using the combined information from Item 1 (Business Overview), Item 1A (Risk Factors), Item 7 (Management’s Discussion and Analysis), Item 7A (Quantitative and Qualitative Disclosures About Market Risk), and Item 8 (Financial Statements) from the latest 10-K filing of {{symbol}}, perform a detailed analysis to provide:
-
-1. **Business and Financial Overview**:
-   - **Core Business Operations**: Summarize the main activities and market positions outlined in Item 1.
-   - **Financial Health**: From Item 8, highlight key financial metrics and year-over-year changes.
-   - **Management Analysis**: Extract key insights from Item 7 about financial trends, operational challenges, and management's strategic focus.
-
-2. **Integrated Risk Profile**:
-   - **Risk Landscape**: Using information from Item 1A and Item 7A, identify and describe the major operational and market risks.
-   - **Impact and Mitigation**: Discuss the potential impacts of these risks on the business and financial performance, and outline the risk mitigation strategies provided by management across these sections.
-
-Provide this analysis in a structured format, aiming to offer stakeholders a clear and concise overview of both opportunities and threats, as well as the company’s preparedness to handle its market and operational challenges.
-"""
-    ,
-    "Strategic Outlook and Future Projections": f"""
-With reference to the information available in Item 1 (Business Overview), Item 1A (Risk Factors), Item 7 (Management’s Discussion and Analysis), Item 7A (Quantitative and Qualitative Disclosures About Market Risk), and Item 8 (Financial Statements) of {{symbol}}'s recent 10-K filing, synthesize a strategic report that addresses:
-
-1. **Strategic Positioning and Opportunities**:
-   - **Market Dynamics**: Analyze the business landscape as described in Item 1 and Item 7, focusing on competitive positioning and market opportunities.
-   - **Operational Strengths**: Highlight operational strengths and efficiencies that bolster the company's market position.
-
-2. **Future Financial Prospects**:
-   - **Financial Projections**: Discuss future financial prospects based on trends and data from Item 7 and Item 8.
-   - **Risk and Opportunities Balance**: Weigh the financial risks (Item 1A and 7A) against potential opportunities, and discuss how the company plans to leverage its strengths to mitigate these risks and capitalize on market trends.
-
-This analysis should offer a forward-looking perspective, aiming to provide potential investors and company stakeholders with a deep understanding of the company’s strategic initiatives, market risks, and financial outlook.
-"""
-}
-    if st.button("Fetch and Analyze"):
-        # Load data
-        if symbol not in agents:
-            download(symbol)
-            create_DB(symbol)
+    st.set_page_config(
+        page_title="10-K Filings Analyzer",
+        page_icon="📊",
+        layout="wide"
+    )
+    
+    st.title("📊 10-K Filings Analyzer")
+    st.markdown("Analyze 10-K filings using AI-powered vector search")
+    
+    # Sidebar with available symbols
+    with st.sidebar:
+        st.header("Available Symbols")
+        available_symbols = list_available_symbols()
+        
+        if available_symbols:
+            st.success(f"✅ {len(available_symbols)} symbols ready:")
+            for sym in available_symbols:
+                st.write(f"• {sym}")
+        else:
+            st.info("No vector databases found")
+            st.write("Create one using the main interface →")
+    
+    # Main interface
+    col1, col2 = st.columns([2, 1])
+    
+    with col1:
+        symbol = st.text_input(
+            "Enter Stock Symbol:",
+            value="",
+            placeholder="e.g., AAPL, MSFT, GOOGL",
+            help="Enter the stock symbol to analyze its 10-K filings"
+        ).strip().upper()
+    
+    with col2:
+        if st.button("🔄 Refresh", help="Refresh the page"):
+            st.rerun()
+    
+    if symbol:
+        st.markdown("---")
+        
+        # Try to load tools
         agent = load_tools(symbol)
-        responses = {}
-        # Run queries and store responses
-        for key, query in queries.items():
-            if key not in st.session_state or st.session_state.query != query:
-                response = run_agent_query(agent, query)
-                st.session_state[key] = response
-                st.session_state.query = query
-            responses[key] = st.session_state[key]
-
-        # Display insights from the agent
-        for key, response in responses.items():
-            st.write(f"Analysis for **{key}** from recent 10-K filing of **{symbol}**:")
-            st.write(response['output'])
+        
+        if agent is not None:
+            st.success(f"✅ Successfully loaded tools for **{symbol}**")
+            
+            # Your main app logic here
+            st.markdown("### 💬 Ask Questions About the 10-K Filing")
+            
+            user_input = st.text_area(
+                "Enter your question:",
+                placeholder="e.g., What are the main risk factors? What was the revenue growth?",
+                height=100
+            )
+            
+            if st.button("🔍 Analyze", disabled=not user_input):
+                if user_input:
+                    with st.spinner("Analyzing..."):
+                        try:
+                            # Here you would use your agent to process the question
+                            # response = agent.run(user_input)
+                            # st.write(response)
+                            
+                            # Placeholder response
+                            st.info("🚧 Analysis functionality will be implemented here")
+                            st.write(f"Question: {user_input}")
+                            st.write(f"Symbol: {symbol}")
+                            
+                        except Exception as e:
+                            st.error(f"Error during analysis: {str(e)}")
+                else:
+                    st.warning("Please enter a question first")
+        
+        else:
+            # Show database creation instructions
+            show_database_creation_instructions(symbol)
+    
+    else:
+        st.info("👆 Please enter a stock symbol to begin")
+        
+        # Show some example symbols
+        st.markdown("### 💡 Popular Symbols to Try:")
+        example_symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "META"]
+        cols = st.columns(len(example_symbols))
+        
+        for i, sym in enumerate(example_symbols):
+            with cols[i]:
+                if st.button(sym, key=f"example_{sym}"):
+                    st.rerun()
 
 if __name__ == "__main__":
     main()
